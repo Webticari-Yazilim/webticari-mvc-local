@@ -153,15 +153,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-php, build-nginx, build-websocket]
     steps:
-      - name: Make packages public and link to repo
+      - name: Make packages public
         run: |
           for pkg in webticari-mvc-local-php webticari-mvc-local-nginx webticari-mvc-local-ws; do
-            echo "Setting $pkg public + repo link..."
+            echo "Setting $pkg visibility: public..."
             curl -s -X PATCH \
               -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/orgs/Webticari-Yazilim/packages/container/$pkg" \
-              -d "{\"visibility\":\"public\",\"repository\":\"Webticari-Yazilim/webticari-mvc-local\"}"
+              "https://api.github.com/users/Webticari-Yazilim/packages/container/$pkg" \
+              -d '{"visibility":"public"}'
             echo ""
           done
 
