@@ -58,23 +58,23 @@ jobs:
             submodule update --init --recursive --depth=1 src
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-      - name: Restore NuGet
+      - name: Restore NuGet packages
         run: nuget restore src/WebticariLocalService.sln
       - name: Build local exe (Release x86)
-        run: msbuild src/WebticariLocalService.sln /p:Configuration=Release /p:Platform=x86 /p:DeployOnBuild=false
+        run: msbuild src/WebticariLocalService.sln /p:Configuration=Release /p:Platform=x86 /p:DeployOnBuild=false /p:ResolveComReference=false /p:WarningLevel=0
       - name: Package local service
+        shell: bash
         run: |
-          mkdir dist\WebticariLocalService
-          copy "src\WebticariLocalService\bin\Release\*.exe" dist\WebticariLocalService\
-          copy "src\WebticariLocalService\bin\Release\*.dll" dist\WebticariLocalService\
-          copy "src\WebticariLocalService\bin\Release\*.config" dist\WebticariLocalService\
-          copy "src\WebticariLocalService\bin\Release\*.xml" dist\WebticariLocalService\ 2>$null || echo no xml
-          copy "src\WLSStartupService\bin\Release\*.exe" dist\ 2>$null || echo skip
-          Compress-Archive -Path dist\* -DestinationPath out\WebticariLocalService.zip
+          mkdir -p dist/WebticariLocalService
+          cp "src/WebticariLocalService/bin/Release/Webticari Lokal Servis.exe" dist/WebticariLocalService/ 2>/dev/null || true
+          cp src/WebticariLocalService/bin/Release/*.dll dist/WebticariLocalService/ 2>/dev/null || true
+          cp src/WebticariLocalService/bin/Release/*.config dist/WebticariLocalService/ 2>/dev/null || true
+          cp src/WLSStartupService/bin/Release/WLSStartupService.exe dist/ 2>/dev/null || true
+          cd dist && zip -r ../WebticariLocalService.zip . && cd ..
       - uses: actions/upload-artifact@v4
         with:
           name: local-exe
-          path: out\WebticariLocalService.zip
+          path: WebticariLocalService.zip
           retention-days: 1
 
   build-php:
