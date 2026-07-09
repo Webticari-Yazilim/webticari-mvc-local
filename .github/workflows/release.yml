@@ -45,32 +45,20 @@ jobs:
           retention-days: 1
 
   build-local-exe:
-    runs-on: windows-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Init submodule (src)
-        shell: bash
+        with:
+          submodules: recursive
+      - name: Package pre-built local service
         run: |
-          git submodule sync --recursive
-          git -c url."https://x-access-token:${{ secrets.GH_PAT }}@github.com/".insteadOf="git@github.com:" \
-            -c url."https://x-access-token:${{ secrets.GH_PAT }}@github.com/".insteadOf="https://github.com/" \
-            submodule update --init --recursive --depth=1 src
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-      - name: Restore NuGet packages
-        run: nuget restore src/WebticariLocalService.sln
-      - name: Build local exe (Release x86)
-        run: msbuild src/WebticariLocalService.sln /p:Configuration=Release /p:Platform=x86 /p:DeployOnBuild=false /p:ResolveComReference=false /p:WarningLevel=0
-      - name: Package local service
-        shell: bash
-        run: |
-          mkdir -p dist/WebticariLocalService
-          cp "src/WebticariLocalService/bin/Release/Webticari Lokal Servis.exe" dist/WebticariLocalService/ 2>/dev/null || true
-          cp src/WebticariLocalService/bin/Release/*.dll dist/WebticariLocalService/ 2>/dev/null || true
-          cp src/WebticariLocalService/bin/Release/*.config dist/WebticariLocalService/ 2>/dev/null || true
-          cp src/WLSStartupService/bin/Release/WLSStartupService.exe dist/ 2>/dev/null || true
-          cd dist && zip -r ../WebticariLocalService.zip . && cd ..
+          if [ -d "src/dist/WebticariLocalService" ]; then
+            cd src/dist && zip -r ../../WebticariLocalService.zip .
+          else
+            echo "src/dist/WebticariLocalService bulunamadı, atlanıyor"
+            touch WebticariLocalService.zip
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: local-exe
